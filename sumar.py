@@ -1,28 +1,14 @@
 import os
-import re
 
-# 1. Leer números del commit si existen, o usar valores iniciales (10 y 20)
-commit_msg = os.getenv('COMMIT_MESSAGE', '')
-numeros = re.findall(r'-?\d+(?:\.\d+)?', commit_msg)
-
-if len(numeros) >= 2:
-    num1, num2 = float(numeros[0]), float(numeros[1])
-else:
-    num1, num2 = 10.0, 20.0
-
-num1_fmt = int(num1) if num1.is_integer() else num1
-num2_fmt = int(num2) if num2.is_integer() else num2
-resultado_fmt = int(num1 + num2) if (num1 + num2).is_integer() else (num1 + num2)
-
-# 2. Generar página HTML Interactiva (Sin resumen en los logs de GitHub Actions)
-html_content = f"""<!DOCTYPE html>
+# Generar la interfaz web limpia e interactiva en index.html
+html_content = """<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Suma Interactiva</title>
+  <title>Calculadora de Suma</title>
   <style>
-    body {{
+    body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #0d1117;
       color: #c9d1d9;
@@ -31,8 +17,8 @@ html_content = f"""<!DOCTYPE html>
       align-items: center;
       height: 100vh;
       margin: 0;
-    }}
-    .card {{
+    }
+    .card {
       background-color: #161b22;
       border: 1px solid #30363d;
       border-radius: 12px;
@@ -40,14 +26,14 @@ html_content = f"""<!DOCTYPE html>
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       width: 380px;
       text-align: center;
-    }}
-    h2 {{ color: #58a6ff; margin-bottom: 20px; }}
-    .inputs {{
+    }
+    h2 { color: #58a6ff; margin-bottom: 20px; }
+    .inputs {
       display: flex;
       gap: 10px;
       margin-bottom: 15px;
-    }}
-    input {{
+    }
+    input {
       width: 50%;
       padding: 10px;
       border-radius: 6px;
@@ -57,8 +43,8 @@ html_content = f"""<!DOCTYPE html>
       font-size: 16px;
       text-align: center;
       box-sizing: border-box;
-    }}
-    button {{
+    }
+    button {
       width: 100%;
       padding: 12px;
       margin-bottom: 20px;
@@ -69,30 +55,33 @@ html_content = f"""<!DOCTYPE html>
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-    }}
-    button:hover {{ background-color: #2ea043; }}
-    table {{
+    }
+    button:hover { background-color: #2ea043; }
+    table {
       width: 100%;
       border-collapse: collapse;
-    }}
-    th, td {{
+      margin-top: 10px;
+    }
+    th, td {
       border: 1px solid #30363d;
       padding: 12px;
       text-align: center;
-    }}
-    th {{ background-color: #21262d; color: #58a6ff; }}
-    td {{ background-color: #0d1117; font-size: 18px; }}
-    .total {{ color: #7ee787; font-weight: bold; font-size: 22px; }}
+    }
+    th { background-color: #21262d; color: #58a6ff; }
+    td { background-color: #0d1117; font-size: 18px; }
+    .total { color: #7ee787; font-weight: bold; font-size: 22px; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>🧮 Calculadora de Suma</h2>
+    
     <div class="inputs">
-      <input type="number" id="n1" value="{num1_fmt}" placeholder="Número 1" oninput="calcular()">
-      <input type="number" id="n2" value="{num2_fmt}" placeholder="Número 2" oninput="calcular()">
+      <input type="number" id="n1" placeholder="Número 1">
+      <input type="number" id="n2" placeholder="Número 2">
     </div>
-    <button onclick="calcular()">Calcular Suma 🔥</button>
+
+    <button onclick="realizarSuma()">Calcular Suma 🔥</button>
 
     <table>
       <thead>
@@ -104,24 +93,32 @@ html_content = f"""<!DOCTYPE html>
       </thead>
       <tbody>
         <tr>
-          <td id="res-n1">{num1_fmt}</td>
-          <td id="res-n2">{num2_fmt}</td>
-          <td class="total" id="res-total">{resultado_fmt} 🔥</td>
+          <td id="res-n1">-</td>
+          <td id="res-n2">-</td>
+          <td class="total" id="res-total">-</td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <script>
-    function calcular() {{
-      const val1 = parseFloat(document.getElementById('n1').value) || 0;
-      const val2 = parseFloat(document.getElementById('n2').value) || 0;
-      const total = val1 + val2;
+    function realizarSuma() {
+      const val1 = document.getElementById('n1').value;
+      const val2 = document.getElementById('n2').value;
 
-      document.getElementById('res-n1').innerText = val1;
-      document.getElementById('res-n2').innerText = val2;
-      document.getElementById('res-total').innerText = total + " 🔥";
-    }}
+      if (val1 === '' || val2 === '') {
+        alert('Por favor ingresa ambos números');
+        return;
+      }
+
+      const num1 = parseFloat(val1);
+      const num2 = parseFloat(val2);
+      const suma = num1 + num2;
+
+      document.getElementById('res-n1').innerText = num1;
+      document.getElementById('res-n2').innerText = num2;
+      document.getElementById('res-total').innerText = suma + " 🔥";
+    }
   </script>
 </body>
 </html>
@@ -130,4 +127,4 @@ html_content = f"""<!DOCTYPE html>
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("Página interactiva generada con éxito.")
+print("index.html interactivo creado con éxito.")
