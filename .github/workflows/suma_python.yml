@@ -4,21 +4,21 @@ on:
   push:
     branches: [ "main", "master" ]
   workflow_dispatch:
-    inputs:
-      numero1:
-        description: 'Escribe el primer número'
-        required: true
-        default: '50'
-      numero2:
-        description: 'Escribe el segundo número'
-        required: true
-        default: '100'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Descargar el repositorio
+      - name: Descargar repositorio
         uses: actions/checkout@v4
 
       - name: Configurar Python
@@ -26,23 +26,29 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Ejecutar script de suma
+      - name: Probar ejecucion en Python
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          INPUT_NUM1: ${{ github.event.inputs.numero1 }}
-          INPUT_NUM2: ${{ github.event.inputs.numero2 }}
-        run: |
-          if [ -n "$INPUT_NUM1" ] && [ -n "$INPUT_NUM2" ]; then
-            python sumar.py "$INPUT_NUM1" "$INPUT_NUM2"
-          else
-            python sumar.py
-          fi
+        run: python sumar.py
 
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - name: Confirmación de despliegue
-        run: |
-          echo "¡El cálculo se probó correctamente en el job 'test'!"
-          echo "Desplegando la aplicación..."
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empaquetar arte de la Web App
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Desplegar a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

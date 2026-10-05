@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Suma - GitHub Pages</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      width: 320px;
+      text-align: center;
+    }
+    h2 { color: #58a6ff; margin-bottom: 20px; }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background-color: #0d1117;
+      color: #fff;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 6px;
+      border: none;
+      background-color: #238636;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { background-color: #2ea043; }
+    .result {
+      margin-top: 20px;
+      padding: 12px;
+      background-color: #21262d;
+      border-radius: 6px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #7ee787;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🧮 Suma Interactiva</h2>
+    <input type="number" id="num1" placeholder="Ingresa el primer número">
+    <input type="number" id="num2" placeholder="Ingresa el segundo número">
+    <button onclick="sumar()">Calcular Suma 🔥</button>
+    <div class="result" id="resultado">Resultado: --</div>
+  </div>
+
+  <script>
+    function sumar() {
+      const n1 = parseFloat(document.getElementById('num1').value) || 0;
+      const n2 = parseFloat(document.getElementById('num2').value) || 0;
+      document.getElementById('resultado').innerText = `Resultado: ${n1 + n2}`;
+    }
+  </script>
+</body>
+</html>
