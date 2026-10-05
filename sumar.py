@@ -1,59 +1,26 @@
-import sys
 import os
 import re
 
-# 1. Leer números ingresados por consola o commit
-if len(sys.argv) >= 3:
-    n1_raw, n2_raw = sys.argv[1], sys.argv[2]
-    origen = f"Ingresados manualmente ({n1_raw} y {n2_raw})"
-else:
-    commit_msg = os.getenv('COMMIT_MESSAGE', '')
-    numeros = re.findall(r'-?\d+(?:\.\d+)?', commit_msg)
-    if len(numeros) >= 2:
-        n1_raw, n2_raw = numeros[0], numeros[1]
-        origen = f"Extraídos del commit: '{commit_msg}'"
-    else:
-        n1_raw, n2_raw = "10", "20"
-        origen = "Valores por defecto (no se enviaron números)"
+# 1. Leer números del commit si existen, o usar valores iniciales (10 y 20)
+commit_msg = os.getenv('COMMIT_MESSAGE', '')
+numeros = re.findall(r'-?\d+(?:\.\d+)?', commit_msg)
 
-# Convertir a flotante/entero
-num1 = float(n1_raw)
-num2 = float(n2_raw)
+if len(numeros) >= 2:
+    num1, num2 = float(numeros[0]), float(numeros[1])
+else:
+    num1, num2 = 10.0, 20.0
+
 num1_fmt = int(num1) if num1.is_integer() else num1
 num2_fmt = int(num2) if num2.is_integer() else num2
+resultado_fmt = int(num1 + num2) if (num1 + num2).is_integer() else (num1 + num2)
 
-resultado = num1 + num2
-resultado_fmt = int(resultado) if resultado.is_integer() else resultado
-
-# 2. Imprimir en los logs de GitHub Actions
-banner = f"""
-┌──────────────────────────────────────────┐
-│          🧮 SUMA DINÁMICA EN PYTHON 🧮   │
-├──────────────────────────────────────────┤
-│  Número 1 : {str(num1_fmt):>10}                   │
-│  Número 2 : {str(num2_fmt):>10}                   │
-│  ──────────────────────────────────────  │
-│  TOTAL    : {str(resultado_fmt):>10} 🔥               │
-└──────────────────────────────────────────┘
-"""
-print(banner)
-
-# 3. Guardar en el Summary de GitHub Actions
-github_summary = os.getenv('GITHUB_STEP_SUMMARY')
-if github_summary:
-    with open(github_summary, 'a', encoding='utf-8') as f:
-        f.write("### 🐍 Resultado Dinámico de la Suma\n")
-        f.write(f"**Origen:** {origen}\n\n")
-        f.write(f"```text\n{banner}\n```\n")
-        f.write(f"**Operación:** `{num1_fmt} + {num2_fmt} = {resultado_fmt}` ✨\n")
-
-# 4. Generar la página HTML con la tabla de resultados
+# 2. Generar página HTML Interactiva (Sin resumen en los logs de GitHub Actions)
 html_content = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resultado de la Suma</title>
+  <title>Calculadora de Suma Interactiva</title>
   <style>
     body {{
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -71,15 +38,42 @@ html_content = f"""<!DOCTYPE html>
       border-radius: 12px;
       padding: 30px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      width: 360px;
+      width: 380px;
       text-align: center;
     }}
-    h2 {{ color: #58a6ff; margin-bottom: 10px; }}
-    .origen {{ color: #8b949e; font-size: 14px; margin-bottom: 20px; }}
+    h2 {{ color: #58a6ff; margin-bottom: 20px; }}
+    .inputs {{
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }}
+    input {{
+      width: 50%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background-color: #0d1117;
+      color: #fff;
+      font-size: 16px;
+      text-align: center;
+      box-sizing: border-box;
+    }}
+    button {{
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: none;
+      background-color: #238636;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }}
+    button:hover {{ background-color: #2ea043; }}
     table {{
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
     }}
     th, td {{
       border: 1px solid #30363d;
@@ -93,8 +87,13 @@ html_content = f"""<!DOCTYPE html>
 </head>
 <body>
   <div class="card">
-    <h2>🧮 Resultado de la Suma</h2>
-    <div class="origen">{origen}</div>
+    <h2>🧮 Calculadora de Suma</h2>
+    <div class="inputs">
+      <input type="number" id="n1" value="{num1_fmt}" placeholder="Número 1" oninput="calcular()">
+      <input type="number" id="n2" value="{num2_fmt}" placeholder="Número 2" oninput="calcular()">
+    </div>
+    <button onclick="calcular()">Calcular Suma 🔥</button>
+
     <table>
       <thead>
         <tr>
@@ -105,16 +104,30 @@ html_content = f"""<!DOCTYPE html>
       </thead>
       <tbody>
         <tr>
-          <td>{num1_fmt}</td>
-          <td>{num2_fmt}</td>
-          <td class="total">{resultado_fmt} 🔥</td>
+          <td id="res-n1">{num1_fmt}</td>
+          <td id="res-n2">{num2_fmt}</td>
+          <td class="total" id="res-total">{resultado_fmt} 🔥</td>
         </tr>
       </tbody>
     </table>
   </div>
+
+  <script>
+    function calcular() {{
+      const val1 = parseFloat(document.getElementById('n1').value) || 0;
+      const val2 = parseFloat(document.getElementById('n2').value) || 0;
+      const total = val1 + val2;
+
+      document.getElementById('res-n1').innerText = val1;
+      document.getElementById('res-n2').innerText = val2;
+      document.getElementById('res-total').innerText = total + " 🔥";
+    }}
+  </script>
 </body>
 </html>
 """
 
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
+
+print("Página interactiva generada con éxito.")
