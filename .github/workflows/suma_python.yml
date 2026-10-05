@@ -1,11 +1,21 @@
-name: Suma Creativa en Python
+name: Deploy Web App to GitHub Pages 🚀
 
 on:
   push:
     branches: [ "main", "master" ]
+  workflow_dispatch:
+    inputs:
+      numero1:
+        description: 'Escribe el primer número'
+        required: true
+        default: '50'
+      numero2:
+        description: 'Escribe el segundo número'
+        required: true
+        default: '100'
 
 jobs:
-  ejecutar-python:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Descargar el repositorio
@@ -19,4 +29,20 @@ jobs:
       - name: Ejecutar script de suma
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-        run: python sumar.py
+          INPUT_NUM1: ${{ github.event.inputs.numero1 }}
+          INPUT_NUM2: ${{ github.event.inputs.numero2 }}
+        run: |
+          if [ -n "$INPUT_NUM1" ] && [ -n "$INPUT_NUM2" ]; then
+            python sumar.py "$INPUT_NUM1" "$INPUT_NUM2"
+          else
+            python sumar.py
+          fi
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Confirmación de despliegue
+        run: |
+          echo "¡El cálculo se probó correctamente en el job 'test'!"
+          echo "Desplegando la aplicación..."
