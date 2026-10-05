@@ -1,0 +1,20 @@
+name: Suma Creativa en Python
+
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  ejecutar-python:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Ejecutar script de suma
+        run: python sumar.py
