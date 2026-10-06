@@ -14,7 +14,7 @@ if not settings.configured:
     )
     django.setup()
 
-# 2. Plantilla con Menú de Navegación procesada por Django
+# 2. Plantilla con Suma y Resta interactivas
 template_django = """<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -61,7 +61,7 @@ template_django = """<!DOCTYPE html>
 
     h1, h2 { color: #58a6ff; margin-top: 0; }
 
-    /* Estilos del Menú */
+    /* Botones del Menú Principal */
     .menu-buttons {
       display: flex;
       flex-direction: column;
@@ -91,7 +91,7 @@ template_django = """<!DOCTYPE html>
       transform: translateY(-2px);
     }
 
-    /* Secciones Ocultas/Visibles */
+    /* Vistas */
     .view-section {
       display: none;
     }
@@ -116,7 +116,7 @@ template_django = """<!DOCTYPE html>
       border-color: #8b949e;
     }
 
-    /* Formulario y Tablas */
+    /* Inputs, botones y tablas */
     .inputs { display: flex; gap: 10px; margin-bottom: 15px; }
     input {
       width: 50%;
@@ -142,19 +142,19 @@ template_django = """<!DOCTYPE html>
       cursor: pointer;
     }
     .btn-action:hover { background-color: #2ea043; }
+
+    .btn-action-resta {
+      background-color: #8957e5;
+    }
+    .btn-action-resta:hover {
+      background-color: #9e6aef;
+    }
+
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #30363d; padding: 10px; text-align: center; }
     th { background-color: #21262d; color: #58a6ff; }
     td { background-color: #0d1117; font-size: 16px; }
     .total { color: #7ee787; font-weight: bold; font-size: 20px; }
-    .resta-box {
-      background-color: #0d1117;
-      border: 1px dashed #2ba977;
-      border-radius: 8px;
-      padding: 15px;
-      font-size: 16px;
-      margin-top: 15px;
-    }
   </style>
 </head>
 <body>
@@ -176,10 +176,10 @@ template_django = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- VISTA 2: SECCIÓN SUMA -->
+  <!-- VISTA 2: CALCULADORA DE SUMA -->
   <div id="view-suma" class="card view-section">
     <button class="btn-back" onclick="showView('view-menu')">⬅ Volver al Menú</button>
-    <h2>🧮 Calculadora de Suma</h2>
+    <h2>🧮 {{ suma_titulo }}</h2>
     
     <div class="inputs">
       <input type="number" id="n1" placeholder="Número 1">
@@ -206,16 +206,34 @@ template_django = """<!DOCTYPE html>
     </table>
   </div>
 
-  <!-- VISTA 3: SECCIÓN RESTA -->
+  <!-- VISTA 3: CALCULADORA DE RESTA -->
   <div id="view-resta" class="card view-section">
     <button class="btn-back" onclick="showView('view-menu')">⬅ Volver al Menú</button>
-    <h2>➖ Módulo de Resta</h2>
+    <h2>➖ {{ resta_titulo }}</h2>
     
-    <div class="resta-box">
-      Renderizado desde Django:
-      <br><br>
-      <strong>{{ r_val1 }} - {{ r_val2 }} = <span class="total">{{ r_resultado }}</span></strong>
+    <div class="inputs">
+      <input type="number" id="rn1" placeholder="Número 1">
+      <input type="number" id="rn2" placeholder="Número 2">
     </div>
+
+    <button class="btn-action btn-action-resta" onclick="realizarResta()">Calcular Resta ❄️</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Número 1</th>
+          <th>Número 2</th>
+          <th>Resultado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="r-res-n1">-</td>
+          <td id="r-res-n2">-</td>
+          <td class="total" id="r-res-total">-</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <script>
@@ -225,7 +243,7 @@ template_django = """<!DOCTYPE html>
       document.getElementById(viewId).classList.add('active');
     }
 
-    // Lógica de Suma
+    // Lógica interactiva de Suma
     function realizarSuma() {
       const val1 = document.getElementById('n1').value;
       const val2 = document.getElementById('n2').value;
@@ -243,19 +261,37 @@ template_django = """<!DOCTYPE html>
       document.getElementById('res-n2').innerText = num2;
       document.getElementById('res-total').innerText = suma + " 🔥";
     }
+
+    // Lógica interactiva de Resta
+    function realizarResta() {
+      const val1 = document.getElementById('rn1').value;
+      const val2 = document.getElementById('rn2').value;
+
+      if (val1 === '' || val2 === '') {
+        alert('Por favor ingresa ambos números');
+        return;
+      }
+
+      const num1 = parseFloat(val1);
+      const num2 = parseFloat(val2);
+      const resta = num1 - num2;
+
+      document.getElementById('r-res-n1').innerText = num1;
+      document.getElementById('r-res-n2').innerText = num2;
+      document.getElementById('r-res-total').innerText = resta + " ❄️";
+    }
   </script>
 </body>
 </html>
 """
 
-# 3. Renderizado con Contexto de Django
+# 3. Renderizado mediante el motor de plantillas de Django
 template = Template(template_django)
 contexto = Context({
     'titulo': 'Plataforma de Operaciones - Django',
     'django_version': django.get_version(),
-    'r_val1': 50,
-    'r_val2': 18,
-    'r_resultado': 50 - 18
+    'suma_titulo': 'Calculadora de Suma',
+    'resta_titulo': 'Calculadora de Resta'
 })
 
 html_generado = template.render(contexto)
@@ -263,4 +299,4 @@ html_generado = template.render(contexto)
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_generado)
 
-print("Página principal con menú interactivo creada con éxito.")
+print("Calculadoras interactivas de Suma y Resta generadas con éxito mediante Django.")
