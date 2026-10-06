@@ -26,6 +26,9 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Instalar Django
+        run: pip install django
+
       - name: Ejecutar script de suma en Python
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}

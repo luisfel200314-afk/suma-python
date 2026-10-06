@@ -1,12 +1,26 @@
 import os
+import django
+from django.conf import settings
+from django.template import Template, Context
 
-# Generar la interfaz web limpia e interactiva en index.html
-html_content = """<!DOCTYPE html>
+# 1. Configuración básica de Django sin requerir el proyecto completo
+if not settings.configured:
+    settings.configure(
+        TEMPLATES=[{
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [],
+            'APP_DIRS': False,
+        }]
+    )
+    django.setup()
+
+# 2. Plantilla HTML adaptada para el motor de Django Templates
+template_django = """<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Suma</title>
+  <title>{{ titulo }}</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -74,7 +88,7 @@ html_content = """<!DOCTYPE html>
 </head>
 <body>
   <div class="card">
-    <h2>🧮 Calculadora de Suma</h2>
+    <h2>🧮 {{ titulo }}</h2>
     
     <div class="inputs">
       <input type="number" id="n1" placeholder="Número 1">
@@ -124,7 +138,13 @@ html_content = """<!DOCTYPE html>
 </html>
 """
 
-with open("index.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
+# 3. Procesar y renderizar usando la librería de Django
+template = Template(template_django)
+contexto = Context({'titulo': 'Calculadora de Suma'})
+html_generado = template.render(contexto)
 
-print("index.html interactivo creado con éxito.")
+# 4. Guardar la salida en index.html
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_generado)
+
+print("Página generada exitosamente usando django.template.")
